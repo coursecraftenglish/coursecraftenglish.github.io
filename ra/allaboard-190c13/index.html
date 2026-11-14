@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<style>[hidden]{display:none!important}html{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}:root{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}</style>
+<title>All Aboard! Read-Along</title>
+<style>
+/* Layout: the real book page fills the screen; a sticky control dock sits at the bottom; tapping a word opens a word card (bottom sheet on phones, side card on desktop). */
+:root{
+  --bg:#eef1f4; --paper:#ffffff; --ink:#1d2430; --muted:#5d6878;
+  --accent:#d9472b; --accent-ink:#ffffff; --hl:rgba(255,214,10,.55); --hl-line:#f2b600;
+  --card:#ffffff; --line:#d5dbe3; --dock:#1d2430; --dock-ink:#ffffff; --dot:#2f6fdb;
+  --display:"Fredoka","Nunito",system-ui,sans-serif; --body:"Nunito",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161c; --paper:#1b2129; --ink:#eef2f7; --muted:#a3adbb; --accent:#ff6a4d; --accent-ink:#1a0d08;
+  --hl:rgba(255,214,10,.45); --hl-line:#ffd60a; --card:#1f262f; --line:#323c48; --dock:#0b0e12; --dock-ink:#f2f5f9; --dot:#7fb0ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161c; --paper:#1b2129; --ink:#eef2f7; --muted:#a3adbb; --accent:#ff6a4d; --accent-ink:#1a0d08;
+  --hl:rgba(255,214,10,.45); --hl-line:#ffd60a; --card:#1f262f; --line:#323c48; --dock:#0b0e12; --dock-ink:#f2f5f9; --dot:#7fb0ff; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 120px;max-width:1240px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+header h1{font-family:var(--display);font-weight:700;font-size:clamp(20px,3.4vw,28px);margin:0;text-wrap:balance}
+header p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.how{font-size:13px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+.how b{color:var(--ink)}
+.spread{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--paper);border-radius:10px;padding:6px;box-shadow:0 2px 14px rgba(0,0,0,.08)}
+.page{position:relative;min-width:0}
+.page img{display:block;width:100%;height:auto;border-radius:4px;user-select:none;-webkit-user-select:none}
+.w{position:absolute;border-radius:3px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.w.g{border-bottom:2px dotted var(--dot)}
+.w.on{background:var(--hl);box-shadow:0 0 0 2px var(--hl-line)}
+.w:focus-visible{outline:3px solid var(--accent)}
+.nav{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:10px;font-family:var(--display);color:var(--muted)}
+.nav button{background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font:600 15px var(--display);cursor:pointer}
+.nav button:disabled{opacity:.35;cursor:default}
+.dock{position:fixed;left:0;right:0;bottom:0;background:var(--dock);color:var(--dock-ink);
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:20}
+.dock .row{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.play{width:52px;height:52px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);font-size:22px;cursor:pointer;flex:none}
+.bar{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.bar input{width:100%;accent-color:var(--accent)}
+.tm{font:600 12px var(--body);opacity:.8;font-variant-numeric:tabular-nums}
+.tog{border:1px solid rgba(255,255,255,.35);background:transparent;color:var(--dock-ink);border-radius:999px;padding:8px 12px;font:600 13px var(--body);cursor:pointer;white-space:nowrap}
+.tog[aria-pressed="true"]{background:var(--dock-ink);color:var(--dock)}
+.sheet{position:fixed;z-index:30;background:var(--card);color:var(--ink);box-shadow:0 10px 40px rgba(0,0,0,.25);border:1px solid var(--line)}
+@media (max-width:760px){
+  .spread{grid-template-columns:1fr}
+  .sheet{left:0;right:0;bottom:0;border-radius:18px 18px 0 0;padding:16px max(18px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));max-height:62vh;overflow:auto}
+  .tog .lg{display:none}
+}
+@media (min-width:761px){.sheet{right:calc(20px + env(safe-area-inset-right,0px));bottom:96px;width:340px;border-radius:16px;padding:18px}}
+.sheet .x{position:absolute;top:8px;right:10px;border:0;background:transparent;color:var(--muted);font-size:26px;cursor:pointer;line-height:1}
+.sheet .pic[hidden]{display:none}
+.sheet .pic{width:100%;max-width:220px;aspect-ratio:1/1;object-fit:cover;border-radius:12px;display:block;margin:0 auto 10px;background:var(--bg)}
+.sheet h2{font-family:var(--display);font-size:30px;margin:0;line-height:1.1}
+.sheet .pos{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.sheet .def{font-size:18px;margin:10px 0 6px;line-height:1.4}
+.sheet .ex{font-size:16px;color:var(--muted);margin:0 0 14px;line-height:1.45}
+.sheet .ex::before{content:"Example: ";font-weight:700;color:var(--ink)}
+.sheet .btns{display:flex;gap:8px;flex-wrap:wrap}
+.sheet .btns button{flex:1;min-width:130px;border-radius:12px;border:0;padding:12px;font:600 15px var(--display);cursor:pointer}
+.b1{background:var(--bg);color:var(--ink)} .b2{background:var(--accent);color:var(--accent-ink)}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(16px);opacity:0}}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>All Aboard! Elijah McCoy’s Steam Engine</h1>
+      <p>Read along with Teacher Omar · Wonders Reading, pages 74 to 89</p>
+    </div>
+    <div class="how"><span><b>▶ Play</b> and follow the yellow words</span><span><b>Tap a word</b> to hear it</span><span><b>Dotted words</b> have a meaning card</span></div>
+  </header>
+  <div class="spread" id="spread"></div>
+  <div class="nav"><button id="prev" type="button">‹ Back</button><span id="pg">Pages</span><button id="next" type="button">Next ›</button></div>
+</div>
+
+<div class="dock"><div class="row">
+  <button class="play" id="play" type="button" aria-label="Play">▶</button>
+  <div class="bar"><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Position"><span class="tm" id="tm">0:00 / 0:00</span></div>
+  <button class="tog" id="slow" type="button" aria-pressed="false">🐢 <span class="lg">Slow</span></button>
+  <button class="tog" id="mean" type="button" aria-pressed="true">💡 <span class="lg">Meanings</span></button>
+</div></div>
+
+<div class="sheet" id="sheet" hidden>
+  <button class="x" id="close" type="button" aria-label="Close">×</button>
+  <img class="pic" id="cpic" alt="">
+  <span class="pos" id="cpos"></span>
+  <h2 id="cword"></h2>
+  <p class="def" id="cdef"></p>
+  <p class="ex" id="cex"></p>
+  <div class="btns"><button class="b1" id="again" type="button">🔊 Hear it again</button><button class="b2" id="fromhere" type="button">▶ Read from here</button></div>
+</div>
+
+<audio id="au" src="audio.mp3" preload="auto"></audio>
+<script>
+(async function(){
+const D=await (await fetch('data.json?v=3')).json();
+const au=document.getElementById('au'),spread=document.getElementById('spread');
+const mq=matchMedia('(max-width:760px)');
+let view=0,cur=null,stopAt=null,meanings=true,sel=null;
+const all=[];D.pages.forEach((p,pi)=>p.words.forEach(w=>{w.pi=pi;all.push(w)}));all.sort((a,b)=>a.s-b.s);
+function groups(){const n=D.pages.length;const g=[];if(mq.matches){for(let i=0;i<n;i++)g.push([i])}else{for(let i=0;i<n;i+=2)g.push([i,i+1].filter(x=>x<n))}return g}
+let G=groups();
+function render(){
+  spread.innerHTML='';
+  G[view].forEach(pi=>{
+    const p=D.pages[pi];const d=document.createElement('div');d.className='page';
+    const im=document.createElement('img');im.src=p.img;im.alt='Book page '+(74+pi);im.draggable=false;d.appendChild(im);
+    p.words.forEach(w=>{const s=document.createElement('span');s.className='w'+(w.g&&meanings?' g':'');
+      s.style.left=(w.x-0.25)+'%';s.style.top=(w.y-0.2)+'%';s.style.width=(w.w+0.5)+'%';s.style.height=(w.h+0.5)+'%';
+      s.tabIndex=0;s.setAttribute('role','button');s.setAttribute('aria-label',w.t);w.el=s;
+      s.onclick=()=>tap(w);s.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tap(w)}};d.appendChild(s)});
+    spread.appendChild(d)});
+  const a=G[view][0]+74,b=G[view][G[view].length-1]+74;
+  document.getElementById('pg').textContent=a===b?'Page '+a:'Pages '+a+' to '+b;
+  document.getElementById('prev').disabled=view===0;document.getElementById('next').disabled=view===G.length-1;
+  if(cur&&cur.el)cur.el.classList.add('on');
+}
+function viewOf(pi){return G.findIndex(g=>g.includes(pi))}
+function setCur(w){if(cur===w)return;if(cur&&cur.el)cur.el.classList.remove('on');cur=w;if(!w)return;
+  const v=viewOf(w.pi);if(v!==view){view=v;render()}if(w.el)w.el.classList.add('on')}
+function fmt(t){t=Math.max(0,t|0);return (t/60|0)+':'+String(t%60).padStart(2,'0')}
+au.addEventListener('timeupdate',tick);
+function tick(){const t=au.currentTime;
+  if(stopAt!=null&&t>=stopAt){au.pause();stopAt=null}
+  let w=null;for(const x of all){if(x.s<=t+0.05)w=x;else break}
+  if(w&&t<=w.e+0.6)setCur(w);
+  document.getElementById('seek').value=au.duration?t/au.duration*1000:0;
+  document.getElementById('tm').textContent=fmt(t)+' / '+fmt(au.duration||0)}
+setInterval(()=>{if(!au.paused)tick()},80);
+const playB=document.getElementById('play');
+au.onplay=()=>{playB.textContent='❚❚';playB.setAttribute('aria-label','Pause')};
+au.onpause=()=>{playB.textContent='▶';playB.setAttribute('aria-label','Play')};
+playB.onclick=()=>{stopAt=null;au.paused?au.play():au.pause()};
+document.getElementById('seek').oninput=e=>{if(au.duration){au.currentTime=e.target.value/1000*au.duration;tick()}};
+const slow=document.getElementById('slow');slow.onclick=()=>{const on=slow.getAttribute('aria-pressed')!=='true';slow.setAttribute('aria-pressed',on);au.playbackRate=on?0.75:1};
+const mean=document.getElementById('mean');mean.onclick=()=>{meanings=mean.getAttribute('aria-pressed')!=='true';mean.setAttribute('aria-pressed',meanings);if(!meanings)closeCard();render()};
+function playWord(w){au.currentTime=Math.max(0,w.s-0.03);stopAt=w.e+0.08;au.play()}
+function tap(w){setCur(w);playWord(w);if(meanings&&w.g)openCard(w);else closeCard()}
+const sheet=document.getElementById('sheet');
+function openCard(w){sel=w;const g=D.gloss[w.g];
+  const pic=document.getElementById('cpic');if(g.img){pic.src='pics/'+g.img+'.jpg';pic.alt=g.w;pic.hidden=false}else pic.hidden=true;
+  document.getElementById('cword').textContent=g.w;document.getElementById('cpos').textContent=g.pos;
+  document.getElementById('cdef').textContent=g.d;document.getElementById('cex').textContent=g.ex;sheet.hidden=false}
+function closeCard(){sheet.hidden=true;sel=null}
+document.getElementById('close').onclick=closeCard;
+document.getElementById('again').onclick=()=>{if(sel)playWord(sel)};
+document.getElementById('fromhere').onclick=()=>{if(sel){au.currentTime=Math.max(0,sel.s-0.03);stopAt=null;au.play();closeCard()}};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCard()});
+document.getElementById('prev').onclick=()=>{if(view>0){view--;render();window.scrollTo({top:0})}};
+document.getElementById('next').onclick=()=>{if(view<G.length-1){view++;render();window.scrollTo({top:0})}};
+mq.addEventListener('change',()=>{const pi=G[view][0];G=groups();view=viewOf(pi);render()});
+render();tick();
+})();
+</script>
+
+</body>
+</html>
