@@ -65,6 +65,10 @@ header p{margin:2px 0 0;color:var(--muted);font-size:14px}
 .sheet .btns{display:flex;gap:8px;flex-wrap:wrap}
 .sheet .btns button{flex:1;min-width:130px;border-radius:12px;border:0;padding:12px;font:600 15px var(--display);cursor:pointer}
 .b1{background:var(--bg);color:var(--ink)} .b2{background:var(--accent);color:var(--accent-ink)}
+.dl{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-ink);text-decoration:none;border-radius:999px;padding:10px 16px;font:600 15px var(--display);white-space:nowrap}
+.dl:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.dl small{font:600 12px var(--body);opacity:.85}
+.tog.dlt{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(16px);opacity:0}}}
 </style>
 
@@ -75,6 +79,7 @@ header p{margin:2px 0 0;color:var(--muted);font-size:14px}
       <p>Read along with Teacher Omar · Wonders Reading, pages 74 to 89</p>
     </div>
     <div class="how"><span><b>▶ Play</b> and follow the yellow words</span><span><b>Tap a word</b> to hear it</span><span><b>Dotted words</b> have a meaning card</span></div>
+    <a class="dl" id="dl" href="audio.mp3" download="All Aboard - Full Story.mp3">⬇ Download the full story audio <small>(MP3)</small></a>
   </header>
   <div class="spread" id="spread"></div>
   <div class="nav"><button id="prev" type="button">‹ Back</button><span id="pg">Pages</span><button id="next" type="button">Next ›</button></div>
@@ -85,6 +90,7 @@ header p{margin:2px 0 0;color:var(--muted);font-size:14px}
   <div class="bar"><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Position"><span class="tm" id="tm">0:00 / 0:00</span></div>
   <button class="tog" id="slow" type="button" aria-pressed="false">🐢 <span class="lg">Slow</span></button>
   <button class="tog" id="mean" type="button" aria-pressed="true">💡 <span class="lg">Meanings</span></button>
+  <a class="tog dlt" href="audio.mp3" download="All Aboard - Full Story.mp3" aria-label="Download the full story audio (MP3)" title="Download the full story audio (MP3)">⬇ <span class="lg">MP3</span></a>
 </div></div>
 
 <div class="sheet" id="sheet" hidden>
@@ -100,7 +106,7 @@ header p{margin:2px 0 0;color:var(--muted);font-size:14px}
 <audio id="au" src="audio.mp3" preload="auto"></audio>
 <script>
 (async function(){
-const D=await (await fetch('data.json?v=3')).json();
+const D=await (await fetch('data.json?v=4')).json();
 const au=document.getElementById('au'),spread=document.getElementById('spread');
 const mq=matchMedia('(max-width:760px)');
 let view=0,cur=null,stopAt=null,meanings=true,sel=null;
@@ -137,11 +143,18 @@ setInterval(()=>{if(!au.paused)tick()},80);
 const playB=document.getElementById('play');
 au.onplay=()=>{playB.textContent='❚❚';playB.setAttribute('aria-label','Pause')};
 au.onpause=()=>{playB.textContent='▶';playB.setAttribute('aria-label','Play')};
-playB.onclick=()=>{stopAt=null;au.paused?au.play():au.pause()};
+playB.onclick=()=>{stopAt=null;if(wa)wa.pause();au.paused?au.play():au.pause()};
 document.getElementById('seek').oninput=e=>{if(au.duration){au.currentTime=e.target.value/1000*au.duration;tick()}};
 const slow=document.getElementById('slow');slow.onclick=()=>{const on=slow.getAttribute('aria-pressed')!=='true';slow.setAttribute('aria-pressed',on);au.playbackRate=on?0.75:1};
 const mean=document.getElementById('mean');mean.onclick=()=>{meanings=mean.getAttribute('aria-pressed')!=='true';mean.setAttribute('aria-pressed',meanings);if(!meanings)closeCard();render()};
-function playWord(w){au.currentTime=Math.max(0,w.s-0.03);stopAt=w.e+0.08;au.play()}
+const CLIPS=new Set(D.clips||[]);let wa=null;
+function wkey(t){return t.replace(/[\u2018\u2019]/g,"'").toLowerCase().replace(/[^a-z'\-]/g,'').replace(/^['\-]+|['\-]+$/g,'')}
+function seekWord(w){au.currentTime=Math.max(0,w.s-0.03);stopAt=w.e+0.08;au.play()}
+function playWord(w){const k=wkey(w.t);
+  if(k&&CLIPS.has(k)){stopAt=null;au.pause();if(wa){wa.pause()}
+    wa=new Audio('w/'+k.replace(/['\-]/g,'_')+'.mp3');wa.playbackRate=au.playbackRate;
+    wa.play().catch(()=>seekWord(w));wa.onerror=()=>seekWord(w);return}
+  seekWord(w)}
 function tap(w){setCur(w);playWord(w);if(meanings&&w.g)openCard(w);else closeCard()}
 const sheet=document.getElementById('sheet');
 function openCard(w){sel=w;const g=D.gloss[w.g];
@@ -151,7 +164,7 @@ function openCard(w){sel=w;const g=D.gloss[w.g];
 function closeCard(){sheet.hidden=true;sel=null}
 document.getElementById('close').onclick=closeCard;
 document.getElementById('again').onclick=()=>{if(sel)playWord(sel)};
-document.getElementById('fromhere').onclick=()=>{if(sel){au.currentTime=Math.max(0,sel.s-0.03);stopAt=null;au.play();closeCard()}};
+document.getElementById('fromhere').onclick=()=>{if(sel){if(wa)wa.pause();au.currentTime=Math.max(0,sel.s-0.03);stopAt=null;au.play();closeCard()}};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCard()});
 document.getElementById('prev').onclick=()=>{if(view>0){view--;render();window.scrollTo({top:0})}};
 document.getElementById('next').onclick=()=>{if(view<G.length-1){view++;render();window.scrollTo({top:0})}};
