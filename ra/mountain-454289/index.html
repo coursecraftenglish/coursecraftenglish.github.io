@@ -79,7 +79,7 @@ header p{margin:2px 0 0;color:var(--muted);font-size:14px}
       <p>Read along · Wonders Grade&nbsp;3, Lesson&nbsp;5, pp.&nbsp;94&nbsp;to&nbsp;97</p>
     </div>
     <div class="how"><span><b>▶ Play</b> and follow the yellow words</span><span><b>Tap a word</b> to hear it</span><span><b>Dotted words</b> have a meaning card</span></div>
-    <a class="dl" id="dl" href="audio.mp3" download="A Mountain of History - Full Story.mp3">⬇ Download the full story audio <small>(MP3)</small></a>
+    <a class="dl" id="dl" href="audio.mp3" download="A Mountain of History Full Story.mp3">⬇ Download the full story audio <small>(MP3)</small></a>
   </header>
   <div class="spread" id="spread"></div>
   <div class="nav"><button id="prev" type="button">‹ Back</button><span id="pg">Pages</span><button id="next" type="button">Next ›</button></div>
@@ -90,7 +90,7 @@ header p{margin:2px 0 0;color:var(--muted);font-size:14px}
   <div class="bar"><input id="seek" type="range" min="0" max="1000" value="0" aria-label="Position"><span class="tm" id="tm">0:00 / 0:00</span></div>
   <button class="tog" id="slow" type="button" aria-pressed="false">🐢 <span class="lg">Slow</span></button>
   <button class="tog" id="mean" type="button" aria-pressed="true">💡 <span class="lg">Meanings</span></button>
-  <a class="tog dlt" href="audio.mp3" download="A Mountain of History - Full Story.mp3" aria-label="Download the full story audio (MP3)" title="Download the full story audio (MP3)">⬇ <span class="lg">MP3</span></a>
+  <a class="tog dlt" href="audio.mp3" download="A Mountain of History Full Story.mp3" aria-label="Download the full story audio (MP3)" title="Download the full story audio (MP3)">⬇ <span class="lg">MP3</span></a>
 </div></div>
 
 <div class="sheet" id="sheet" hidden>
@@ -106,7 +106,7 @@ header p{margin:2px 0 0;color:var(--muted);font-size:14px}
 <audio id="au" src="audio.mp3" preload="auto"></audio>
 <script>
 (async function(){
-const D=await (await fetch('data.json?v=2')).json();
+const D=await (await fetch('data.json?v=3')).json();
 const au=document.getElementById('au'),spread=document.getElementById('spread');
 const mq=matchMedia('(max-width:760px)');
 let view=0,cur=null,stopAt=null,meanings=true,sel=null;
