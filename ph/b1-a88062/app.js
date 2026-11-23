@@ -1,6 +1,6 @@
 // Daily Phonics Booklet 1 — interactive pages. Tap the page to hear it; practise with the microphone.
 (async function () {
-  const D = await (await fetch("data.json?v=2")).json();
+  const D = await (await fetch("data.json?v=3")).json();
   const $ = (s, r = document) => r.querySelector(s);
   const app = $("#app");
   const VDIR = { r: "r", m: "m", o: "o" };
@@ -61,7 +61,8 @@
     $("#prev").onclick = () => (location.hash = n - 1 + p); $("#next").onclick = () => (location.hash = n + 1 + p);
     app.querySelectorAll("[data-p]").forEach((b) => (b.onclick = () => (location.hash = n + b.dataset.p)));
     const pg = $(".pg");
-    for (const h of L[p.toUpperCase()].hs) {
+    const order = (t) => (t === "ins" || t === "ins2" ? 1 : 0);
+    for (const h of [...L[p.toUpperCase()].hs].sort((a, b) => order(a.t) - order(b.t))) {
       const b = document.createElement("button"); b.className = "hs pulse"; const [x, y, w, hh] = h.b;
       const pad = 0.6; Object.assign(b.style, { left: x - pad + "%", top: y - pad * 0.75 + "%", width: w + 2 * pad + "%", height: hh + 1.5 * pad + "%" });
       b.setAttribute("aria-label", h.w || h.t); b.onclick = () => tap(h, b); pg.appendChild(b);
@@ -73,20 +74,21 @@
     ctx(); const v = L.v;
     switch (h.t) {
       case "head": return playSteps(v, L.head, el, 300);
-      case "say": return playSteps(v, ["l:" + L.say], el);
+      case "say": return playSteps(v, L.say, el, 350);
+      case "ins2": return playSteps(v, ["l:i_point"], el);
       case "ins": return playSteps(v, ["l:" + (part === "a" ? L.ins : insB(h.lab))], el);
       case "star": return openPractice(firstTodo());
       case "tile": if (h.snd) return playSteps(v, ["s:" + h.snd, "s:" + h.snd], el, 350); return openPractice(h.w);
       case "chain": return openChain(h.ws);
       case "sent": return openPractice(h.k);
-      case "trace": return playSteps(v, [L.trace], el);
+      case "trace": return playSteps(v, L.trace, el, 400);
       case "lscw": return playSteps(v, [(D.words[h.w] || L.mode !== "listen" ? "w:" : "s:") + h.w], el);
       case "test": return playSteps(v, [(L.mode === "listen" ? "s:" : "w:") + h.w], el);
       case "wsent": { const k = L.sents[Math.floor(Math.random() * L.sents.length)]; return k ? playSteps(v, ["l:" + k], el) : null; }
-      case "check": return playSteps(v, ["l:i_check"], el);
+      case "check": return playSteps(v, ["l:" + L.check], el);
     }
   }
-  const insB = (lab) => ({ "TRACE IT": L.trace.split(":")[1], "LOOK, SAY, COVER, WRITE": "i_lscw", "SPELLING TEST": L.mode === "listen" ? "i_test2" : "i_test", "WRITE A SENTENCE": "i_sent", CHECKPOINT: "i_check" })[lab] || "i_lscw";
+  const insB = (lab) => ({ "TRACE IT": L.n === 25 ? "i_bigl" : "i_trace", "LOOK, SAY, COVER, WRITE": "i_lscw", "SPELLING TEST": L.mode === "listen" ? "i_test2" : "i_test", "WRITE A SENTENCE": "i_sent", CHECKPOINT: L.check })[lab] || "i_lscw";
   const firstTodo = () => L.practice.find((k) => best(k) < 5) || L.practice[0];
   function openChain(ws) { openPractice(ws[0], ws); }
 
