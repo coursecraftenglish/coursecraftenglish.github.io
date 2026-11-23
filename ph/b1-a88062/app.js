@@ -1,10 +1,10 @@
 // Daily Phonics Booklet 1 — interactive pages. Tap the page to hear it; practise with the microphone.
 (async function () {
-  const D = await (await fetch("data.json?v=1")).json();
+  const D = await (await fetch("data.json?v=2")).json();
   const $ = (s, r = document) => r.querySelector(s);
   const app = $("#app");
   const VDIR = { r: "r", m: "m", o: "o" };
-  const TH = window.PH_TH || { w5: { t: -2.6, m: 1.0 }, w4: { t: -4, m: 0.3 }, w3: { t: -6, m: -0.5 }, w2: { t: -9, m: -2 }, s5: -2.6, s4: -4, s3: -6, s2: -9 };
+  const TH = window.PH_TH || { w5: { t: -2.6, m: 1.0 }, w4: { t: -4, m: 0.3 }, w3: { t: -6, m: -0.5 }, w2: { t: -9, m: -2 }, s5: -3.5, s4: -5, s3: -7, s2: -10 };
   const key = (w) => w.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
   const LS = (() => { try { return JSON.parse(localStorage.getItem("ph-b1") || "{}"); } catch (e) { return {}; } })();
   const save = () => { try { localStorage.setItem("ph-b1", JSON.stringify(LS)); } catch (e) {} };
@@ -144,15 +144,19 @@
     const off = new OfflineAudioContext(1, Math.ceil(d.duration * 16000), 16000); const s = off.createBufferSource(); s.buffer = d; s.connect(off.destination); s.start();
     return (await off.startRendering()).getChannelData(0);
   }
-  function starsWord(r) {
-    for (const [n, th] of [[5, TH.w5], [4, TH.w4], [3, TH.w3], [2, TH.w2]]) if (r.t >= th.t && r.margin >= th.m) return n;
-    return 1;
+  // 5 stars only when the word fits as well as our three reference voices did AND no look-alike word fits better
+  function starsWord(r, th) {
+    const [t5, m5] = th || [-3.5, 0];
+    if (r.t >= t5 && r.margin >= m5) return 5;
+    if (r.t >= t5 - 1.5 && r.margin >= m5 - 1) return 4;
+    if (r.t >= t5 - 3 && r.margin >= m5 - 2.5) return 3;
+    return r.t >= -10 ? 2 : 1;
   }
   function starsSent(ws) { const lo = Math.min(...ws); return lo >= TH.s5 ? 5 : lo >= TH.s4 ? 4 : lo >= TH.s3 ? 3 : lo >= TH.s2 ? 2 : 1; }
   async function score(k, isS, f32) {
     const h = await PHMT.encode(f32);
     if (isS) { const r = await PHMT.scoreSent(h, D.sents[k]); return { st: starsSent(r.words), words: r.words }; }
-    const r = await PHMT.scoreWord(h, D.words[k]); return { st: starsWord(r), r };
+    const r = await PHMT.scoreWord(h, D.words[k]); return { st: starsWord(r, D.words[k].th), r };
   }
   window.__phScore = async (u, k) => { await PHMT.load(); const f = await toMono16k(await (await fetch(u)).blob()); const isS = !!D.sents[k]; const t0 = performance.now(); const o = await score(k, isS, f); o.ms = Math.round(performance.now() - t0); return o; };
   const MSG = { 5: ["Perfect! Mastered ✓", "Excellent! Mastered ✓", "You got it! Mastered ✓"], 4: ["So close! Listen once more and try again.", "Almost there! Try again."], 3: ["Good try! Listen, then say it again.", "Keep going! Listen and try again."], 2: ["Listen carefully, then try again.", "Let’s listen again and try."], 1: ["Listen first, then try again.", "Let’s try again together."] };

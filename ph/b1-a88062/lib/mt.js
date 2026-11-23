@@ -96,9 +96,13 @@
   }
   // sentence: lowest log-prob inside each word (punctuation and end token belong to the word before)
   async function scoreSent(h, item) {
-    const lp = await seqLP(await root(h), item.ids); const w = item.words.map(() => 0);
-    item.map.forEach((wi, k) => { w[wi] = Math.min(w[wi], lp[k]); });
-    return { words: w };
+    const S = await root(h); let best = null;
+    for (const it of [item].concat(item.alts || [])) {
+      const lp = await seqLP(S, it.ids); const w = item.words.map(() => 0);
+      it.map.forEach((wi, k) => { w[wi] = Math.min(w[wi], lp[k]); });
+      best = best ? best.map((x, i) => Math.max(x, w[i])) : w;
+    }
+    return { words: best };
   }
   window.PHMT = { load, encode, scoreWord, scoreSent, logMel, isReady: () => !!(enc && dec) };
 })();
