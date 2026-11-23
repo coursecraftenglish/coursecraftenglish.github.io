@@ -1,6 +1,6 @@
 // Daily Phonics Booklet 1 — interactive pages. Tap the page to hear it; practise with the microphone.
 (async function () {
-  const D = await (await fetch("data.json?v=3")).json();
+  const D = await (await fetch("data.json?v=4")).json();
   const $ = (s, r = document) => r.querySelector(s);
   const app = $("#app");
   const VDIR = { r: "r", m: "m", o: "o" };
@@ -64,7 +64,7 @@
     const order = (t) => (t === "ins" || t === "ins2" ? 1 : 0);
     for (const h of [...L[p.toUpperCase()].hs].sort((a, b) => order(a.t) - order(b.t))) {
       const b = document.createElement("button"); b.className = "hs pulse"; const [x, y, w, hh] = h.b;
-      const pad = 0.6; Object.assign(b.style, { left: x - pad + "%", top: y - pad * 0.75 + "%", width: w + 2 * pad + "%", height: hh + 1.5 * pad + "%" });
+      const pad = 0.6, vp = h.t === "ins" || h.t === "ins2" ? 1.2 : pad * 0.75; Object.assign(b.style, { left: x - pad + "%", top: y - vp + "%", width: w + 2 * pad + "%", height: hh + 2 * vp + "%" });
       b.setAttribute("aria-label", h.w || h.t); b.onclick = () => tap(h, b); pg.appendChild(b);
       const pk = practiceKey(h); if (pk && best(pk) >= 5) { const c = document.createElement("span"); c.className = "ck"; c.textContent = "✓"; b.appendChild(c); }
     }
