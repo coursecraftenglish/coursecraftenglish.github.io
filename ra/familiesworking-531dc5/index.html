@@ -69,10 +69,20 @@ header p{margin:2px 0 0;color:var(--muted);font-size:14px}
 .dl:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .dl small{font:600 12px var(--body);opacity:.85}
 .tog.dlt{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.dlbar{position:sticky;top:0;z-index:25;background:var(--bg);padding:8px 0 8px;margin:0 0 10px;border-bottom:1px solid var(--line)}
+.dlbar .in{display:flex;gap:8px;align-items:center;flex-wrap:nowrap}
+.dlbar .lab{font:700 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.dlb{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;border-radius:12px;padding:9px 10px;font:700 14px var(--display);line-height:1.15;text-align:center;border:2px solid var(--accent);color:var(--ink);background:var(--paper)}
+.dlb .ic{font-size:17px;flex:none}
+.dlb small{display:block;font:600 11px var(--body);color:var(--muted)}
+.dlb:hover{background:var(--accent);color:var(--accent-ink)}.dlb:hover small{color:inherit}
+.dlb:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+@media (max-width:760px){.dlbar .lab{display:none}.dlb{flex-direction:column;gap:2px;padding:7px 4px;font-size:13px}.dlb small{font-size:10px}}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(16px);opacity:0}}}
 </style>
 
 <div class="wrap">
+  <nav class="dlbar" aria-label="Downloads"><div class="in"><span class="lab">Downloads</span><a class="dlb" href="passage.pdf" download="Families Working Together - Passage (pgs. 104-109).pdf"><span class="ic">📄</span><span>Passage<small>pgs. 104-109 · PDF</small></span></a><a class="dlb" href="worksheet.pdf" download="Families Working Together - Worksheet.pdf"><span class="ic">📝</span><span>Worksheet<small>PDF</small></span></a><a class="dlb" href="audio.mp3" download="Families Working Together - Audio.mp3"><span class="ic">🎧</span><span>Audio<small>MP3</small></span></a></div></nav>
   <header>
     <div>
       <h1>Families Working Together</h1>
