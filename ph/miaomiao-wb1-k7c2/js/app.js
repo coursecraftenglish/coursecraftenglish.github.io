@@ -61,7 +61,7 @@
   var player = new Audio(); player.preload = 'auto';
   var playToken = 0, rafId = 0;
   function stopAudio() { playToken++; try { player.pause(); } catch (e) {} cancelAnimationFrame(rafId); clearHL(); }
-  function clearHL() { document.querySelectorAll('.hl').forEach(function (e) { e.classList.remove('hl'); }); document.querySelectorAll('.hs.playing').forEach(function (e) { e.classList.remove('playing'); }); }
+  function clearHL() { document.querySelectorAll('.hl').forEach(function (e) { e.classList.remove('hl'); }); document.querySelectorAll('.hs.playing, .line.playing').forEach(function (e) { e.classList.remove('playing'); }); }
   function playSrc(src, from, to, onTime) {
     var tok = playToken;
     return new Promise(function (res) {
@@ -99,6 +99,12 @@
       }).then(next);
     }
     return next();
+  }
+  /* light a tapped box while its clip plays: added AFTER playList's stopAudio (which clears highlights),
+     removed when this clip ends; a newer tap clears it through stopAudio -> clearHL */
+  function lightWhilePlaying(b, pr) {
+    var tok = playToken; b.classList.add('playing');
+    pr.then(function () { if (tok === playToken) b.classList.remove('playing'); });
   }
   /* sentence playback with word highlighting */
   function playSentence(s, spans, wordIdx) {
@@ -167,13 +173,14 @@
   function ensureModel(msgEl) {
     if (window.MT.ready()) return Promise.resolve();
     if (msgEl) msgEl.textContent = 'Getting the listening helper ready (first time only, about 52 MB)…';
+    var failed = false;   // after one file fails, the other files still report progress: ignore it
     return window.MT.load(function (f, got, total) {
-      if (!msgEl) return;
+      if (!msgEl || failed) return;
       msgEl.textContent = got != null ?
         'Getting the listening helper ready (first time only): ' + (got / 1e6).toFixed(1) + ' of ' + Math.round(total / 1e6) + ' MB' :
         'Getting the listening helper ready… ' + Math.round(f * 100) + '%';
     }).then(function () { if (msgEl) msgEl.textContent = ''; })
-      .catch(function (e) { var x = new Error('model'); x.kind = 'model'; x.cause = e; throw x; });
+      .catch(function (e) { failed = true; var x = new Error('model'); x.kind = 'model'; x.cause = e; throw x; });
   }
   var IN_WECHAT = /MicroMessenger/i.test(navigator.userAgent || '');
   var OPEN_IN_BROWSER = 'In WeChat, tap ··· (top right) and choose “Open in browser”.';
@@ -205,11 +212,15 @@
       s.getTracks().forEach(function (t) { t.stop(); }); micOK = true;
     });
   }
+  var micStarting = false;
   function startMic(loadEl, msgEl, kind, onStop) {
+    if (micStarting) return Promise.resolve(null);
+    micStarting = true;
     var micErr = function (e) { if (e && e.kind !== 'model') e.kind = e.kind || 'mic'; throw e; };
     var pre = window.MT.ready() ? Promise.resolve() : checkMic().catch(micErr).then(function () { return ensureModel(loadEl); });
     return pre.then(function () { return record(kind, onStop).catch(micErr); })
-      .catch(function (e) { if (loadEl && loadEl !== msgEl) loadEl.textContent = ''; micError(e, msgEl); return null; });
+      .catch(function (e) { if (loadEl && loadEl !== msgEl) loadEl.textContent = ''; micError(e, msgEl); return null; })
+      .then(function (r) { micStarting = false; return r; });
   }
   function feedback(stars, isSent) {
     if (stars >= 5) return ['Mastered! Great reading!', true];
@@ -251,6 +262,7 @@
       var hear = el('button', { text: '▶ Hear me', onclick: hearMe }); hear.disabled = true;
       mic.onclick = function () {
         if (rec) { rec.stop(); return; }
+        if (micStarting) return;   // already starting (double tap during the download)
         stopAudio(); msg.textContent = ''; msg.className = 'msg';
         startMic(load, msg, isSent ? 'sent' : 'word', function (buf, heard) {
             mic.classList.remove('rec'); mic.textContent = '🎤 My turn';
@@ -314,6 +326,7 @@
       var mic = el('button', { class: 'mic', text: '🎤 My turn' });
       mic.onclick = function () {
         if (rec) { rec.stop(); return; }
+        if (micStarting) return;   // already starting (double tap during the download)
         stopAudio(); m.textContent = '';
         startMic(load, m, 'sent', function (buf, heard) {
             mic.classList.remove('rec'); mic.textContent = '🎤 My turn'; lastRec = buf;
@@ -436,7 +449,7 @@
     p.hs.forEach(function (h, i) {
       var b = el('button', { class: 'hs pulse', 'data-k': h.k, 'data-i': i, 'aria-label': h.l || h.k, style: 'left:' + h.b[0] + '%;top:' + h.b[1] + '%;width:' + h.b[2] + '%;height:' + h.b[3] + '%;animation-delay:' + (Math.min(i, 30) * 0.03) + 's' });
       b.addEventListener('click', function () {
-        if (h.k === 'a') { b.classList.add('playing'); playList(h.src, 250).then(function () { b.classList.remove('playing'); }); }
+        if (h.k === 'a') { b.classList.remove('pulse'); lightWhilePlaying(b, playList(h.src, 250)); }
         else if (h.k === 'w') openPractice(pageList, pageList.indexOf('w:' + h.id), refreshChecks);
         else if (h.k === 's') openPractice(pageList, pageList.indexOf(h.id), refreshChecks);
         else if (h.k === 'story') openStory(p, refreshChecks);
@@ -500,7 +513,7 @@
     wrap.appendChild(el('h3', { text: 'Tap a line to hear it' }));
     p.lines.forEach(function (l) {
       var b = el('button', { class: 'line' + (l.h ? ' lh' : ''), type: 'button', text: l.t });
-      b.addEventListener('click', function () { b.classList.add('playing'); playList(l.src, 250).then(function () { b.classList.remove('playing'); }); });
+      b.addEventListener('click', function () { lightWhilePlaying(b, playList(l.src, 250)); });
       wrap.appendChild(b);
     });
     return wrap;
