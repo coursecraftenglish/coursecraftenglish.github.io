@@ -98,3 +98,10 @@ a{color:inherit}
 .lines .line{display:block;width:100%;text-align:left;border:0;border-top:1px solid #f1e7d9;background:transparent;padding:11px 6px;line-height:1.35;font-size:16px;min-height:44px}
 .lines .line.lh{font-weight:700;color:var(--acc);border-top:2px solid var(--line);margin-top:4px}
 .lines .line.playing{background:rgba(255,200,40,.28)}
+
+/* review M1: big LISTEN AND CIRCLE / LISTEN AND BLEND buttons under the page */
+.big{margin:10px 0 4px}
+.big h3{font-size:15px;margin:10px 2px 6px}
+.bigrow{display:flex;flex-wrap:wrap;gap:8px}
+.bigbtn{min-width:48px;min-height:48px;flex:1 1 48px;font-size:19px;font-weight:700;border-radius:12px;border:2px solid var(--acc,#E8761A);background:#fff;color:#1d2142;cursor:pointer}
+.bigbtn.playing{background:#ffe9a8}

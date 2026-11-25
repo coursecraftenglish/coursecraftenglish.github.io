@@ -61,7 +61,7 @@
   var player = new Audio(); player.preload = 'auto';
   var playToken = 0, rafId = 0;
   function stopAudio() { playToken++; try { player.pause(); } catch (e) {} cancelAnimationFrame(rafId); clearHL(); }
-  function clearHL() { document.querySelectorAll('.hl').forEach(function (e) { e.classList.remove('hl'); }); document.querySelectorAll('.hs.playing, .line.playing').forEach(function (e) { e.classList.remove('playing'); }); }
+  function clearHL() { document.querySelectorAll('.hl').forEach(function (e) { e.classList.remove('hl'); }); document.querySelectorAll('.hs.playing, .line.playing, .bigbtn.playing').forEach(function (e) { e.classList.remove('playing'); }); }
   function playSrc(src, from, to, onTime) {
     var tok = playToken;
     return new Promise(function (res) {
@@ -459,6 +459,7 @@
     w.appendChild(box);
     refreshChecks();
     w.appendChild(el('p', { class: 'tip', text: p.type === 'STORY' ? 'Tap the story to listen and read it with 🎤 My turn.' : p.items.length ? 'Tap the page to hear it. Tap a word or sentence for 🎤 My turn.' : 'Tap the page to hear the instructions.' }));
+    if (p.big) w.appendChild(bigBlock(p));
     if (p.lines) w.appendChild(linesBlock(p));
     if (p.dict) w.appendChild(grownBlock(p));
     var idx = DATA.pages.indexOf(p), prev = DATA.pages[idx - 1], next = DATA.pages[idx + 1];
@@ -506,6 +507,21 @@
         e.left = lef + '%'; e.top = top + '%'; e.width = (rig - lef) + '%'; e.height = (bot - top) + '%';
       }
     });
+  }
+  /* READ and TRY AGAIN pages: big buttons for LISTEN AND CIRCLE 1-6 and LISTEN AND BLEND 1-3 (review M1) */
+  function bigBlock(p) {
+    var wrap = el('div', { class: 'big' });
+    p.big.forEach(function (g) {
+      wrap.appendChild(el('h3', { text: g.t }));
+      var row = el('div', { class: 'bigrow' });
+      g.b.forEach(function (x) {
+        var b = el('button', { class: 'bigbtn', type: 'button', text: x.t, 'aria-label': g.t + ' ' + x.t.replace('🔊 ', '') });
+        b.addEventListener('click', function () { lightWhilePlaying(b, playList(x.src, 250)); });
+        row.appendChild(b);
+      });
+      wrap.appendChild(row);
+    });
+    return wrap;
   }
   /* How-to page: the same lines as a big tappable list (the printed lines are tiny on a phone) */
   function linesBlock(p) {
