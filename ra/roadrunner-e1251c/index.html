@@ -79,6 +79,9 @@ header p{margin:2px 0 0;color:var(--muted);font-size:14px}
 .dlb:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .dlb[aria-disabled="true"]{opacity:.5;border-style:dashed;pointer-events:none}
 @media (max-width:760px){.dlbar .lab{display:none}.dlb{flex-direction:column;gap:2px;padding:7px 4px;font-size:13px}.dlb small{font-size:10px}}
+.tog,.nav button,.dlb,.sheet .btns button{min-height:44px}
+.tog{display:inline-flex;align-items:center;justify-content:center;min-width:44px}
+.sheet .x{width:44px;height:44px;top:4px;right:4px}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(16px);opacity:0}}}
 </style>
 
@@ -116,7 +119,7 @@ header p{margin:2px 0 0;color:var(--muted);font-size:14px}
 <audio id="au" src="audio.mp3" preload="auto"></audio>
 <script>
 (async function(){
-const D=await (await fetch('data.json?v=1')).json();
+const D=await (await fetch('data.json?v=2')).json();
 const au=document.getElementById('au'),spread=document.getElementById('spread');
 const mq=matchMedia('(max-width:760px)');
 let view=0,cur=null,stopAt=null,meanings=true,sel=null;
